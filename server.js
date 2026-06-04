@@ -5,6 +5,7 @@ const dotenv = require("dotenv")
 const cors = require("cors")
 const handleError = require("./Handlerror/handleError")
 const connectDatabase = require("./CONFIG_DB/connectDb")
+const accountRouter = require("./Routes/AccountRoutes")
 dotenv.config()
 
 
@@ -13,6 +14,7 @@ const port = process.env.portNumber
 const app = express()
 
 app.use(cors())
+app.use(express.json())
 
 
 app.listen(port, () => {
@@ -21,11 +23,15 @@ app.listen(port, () => {
 
 
 app.get("/", (req, res) => {
-    res.send("Hello")
+    res.send("Bitget is Active")
 })
-         
 
-connectDatabase()         
+
+connectDatabase()
+
+
+app.use("/api/v2/broker/account", accountRouter)
+
 app.use("/{*any}", handleError)
 
 app.all("/{*any}", (req, res) => {

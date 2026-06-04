@@ -2,7 +2,7 @@ const axios = require('axios');
 const { getBitgetHeaders } = require('../Utils/BidgetUtils');
 
 const dotenv = require("dotenv");
-dotenv.config()
+// dotenv.config()
 const subAccountModel = require('../Models/SubAccountModel');
 // Configuration
 // const API_KEY = process.env.BITGET_API_KEY;
@@ -32,7 +32,7 @@ const PASSPHRASE = process.env.BITGET_PASSPHRASE;
 const createSubAccount = async (email, label) => {
   const path = '/api/v2/broker/account/create-subaccount';
   const body = {
-    subAccountList: [email],             
+    subAccountList: [email],
     label: label
   };
 
@@ -60,24 +60,26 @@ const createSubAccount = async (email, label) => {
       return {
         success: true,
         email,
-        data: bitgetData    
+        data: bitgetData
 
       }
     }
-  } catch (error) {
-    // Log the error and return
-    console.error(`Failed to create/store sub-account for ${email}:`, error.message);
-    return {
-      success: false,
-      email,
-      error: error.response?.data || error.message
-    };
+  }
+  catch (error) {
+    if (error.response) {
+      // This will print exactly what the API rejected
+      console.error("API Rejected Request. Data:", JSON.stringify(error.response.data, null, 2));
+    } else {
+      console.error("Error:", error.message);
+    }
   }
 }
 
 createSubAccount("testuser0@sproutpay.net", "Test_Account_Single")
 
 
+
+module.exports = createSubAccount
 
 
 
