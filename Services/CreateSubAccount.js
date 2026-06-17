@@ -6,8 +6,7 @@ const subAccountModel = require('../Models/SubAccountModel');
 const path = require('path');
 const connectDatabase = require('../CONFIG_DB/connectDb');
 
-// Forces dotenv to look in the root folder relative to this directory
-dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config({ path: '/home/emma/Documents/Bitget_Backend/.env' });
 
 console.log("Debug: API_KEY is loaded:", process.env.BITGET_API_KEY ? "YES" : "NO");
 
@@ -64,13 +63,14 @@ const createSubAccount = async (email, label) => {
 const runBatchCreation = async (startRange = 2, count = 2) => {
   console.log(`🚀 Starting batch verification from index ${startRange} for ${count} accounts...`);
 
+  await connectDatabase()
   const baseEmail = "testuserdev";
   const domain = "sproutpay.net";
   const endRange = startRange + count - 1;
 
   for (let i = startRange; i <= endRange; i++) {
     const emailAlias = `${baseEmail}${i}@${domain}`;
-    const label = `SproutPay_Sub_${i}`;
+    const label = `SproutPay_${i}`;
 
     console.log(`\n[PROCESSING] Account (${i}/${endRange}) Creating ${emailAlias}...`);
 
@@ -95,11 +95,21 @@ const runBatchCreation = async (startRange = 2, count = 2) => {
 if (require.main === module) {
   (async () => {
     try {
-      await connectDatabase()
-      console.log("Database state verified via helper function.");
+      await connectDatabase();
+      console.log("Database state verified.");
 
-      // 2. Start at index 21 to clearly test if the 20-wallet limit restriction was lifted
-      await runBatchCreation(21, 3);
+      // 1. Run the batch creation
+      await runBatchCreation(30, 2);
+
+      // 2. Automatically verify and log the new capacity
+      console.log("\n🔍 Verifying updated broker capacity...");
+      const infoResponse = await axios.get(`${BASE_URL}/api/v2/broker/account/subaccount-list`, {
+        headers: await getBitgetHeaders('GET', '/api/v2/broker/account/subaccount-list', '', API_KEY, SECRET_KEY, PASSPHRASE)
+      });
+
+      const newSize = infoResponse.data.data.subAccountSize;
+      console.log(`✅ Current Sub-Account Usage: ${newSize} / 200`);
+      console.log("Status confirmed for reporting.");
 
     } catch (err) {
       console.error("Critical batch initialization error:", err);
